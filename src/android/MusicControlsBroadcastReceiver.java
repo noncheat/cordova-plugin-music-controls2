@@ -15,9 +15,8 @@ public class MusicControlsBroadcastReceiver extends BroadcastReceiver {
 	private CallbackContext cb;
 	private MusicControls musicControls;
 
-
 	public MusicControlsBroadcastReceiver(MusicControls musicControls){
-		this.musicControls=musicControls;
+		this.musicControls = musicControls;
 	}
 
 	public void setCallback(CallbackContext cb){

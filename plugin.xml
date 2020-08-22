@@ -35,7 +35,7 @@
 		</config-file>
 
 		<config-file target="AndroidManifest.xml" parent="/manifest/application">
-			<service android:name="com.homerours.musiccontrols.MusicControlsNotificationKiller"></service>
+			<service android:name="com.homerours.musiccontrols.MusicControlsNotificationKiller" android:stopWithTask="false"></service>
 		</config-file>
 
 		<framework src="com.android.support:support-v4:25.1.1" />

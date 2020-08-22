@@ -1,48 +1,36 @@
 package com.homerours.musiccontrols;
 
-import org.apache.cordova.CordovaInterface;
-
-
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Random;
-
-import android.util.Log;
-import android.R;
 import android.content.Context;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.Build;
 import android.graphics.BitmapFactory;
 import android.graphics.Bitmap;
 import android.net.Uri;
-
 import android.app.NotificationChannel;
 
 public class MusicControlsNotification {
 	private Activity cordovaActivity;
 	private NotificationManager notificationManager;
 	private Notification.Builder notificationBuilder;
-	private int notificationID;
 	private MusicControlsInfos infos;
 	private Bitmap bitmapCover;
 	private String CHANNEL_ID;
 
 	// Public Constructor
-	public MusicControlsNotification(Activity cordovaActivity,int id){
+	public MusicControlsNotification(Activity cordovaActivity){
 		this.CHANNEL_ID ="cordova-music-channel-id";
-		this.notificationID = id;
 		this.cordovaActivity = cordovaActivity;
-		Context context = cordovaActivity;
-		this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		this.notificationManager = (NotificationManager) cordovaActivity.getSystemService(Context.NOTIFICATION_SERVICE);
 
 		// use channelid for Oreo and higher
 		if (Build.VERSION.SDK_INT >= 26) {
@@ -59,8 +47,11 @@ public class MusicControlsNotification {
 			mChannel.setDescription(description);
 
 			this.notificationManager.createNotificationChannel(mChannel);
-    }
+    	}
+	}
 
+	public void destroy(){
+		this.notificationManager.cancel(MusicControls.NOTIFICATION_ID);
 	}
 
 	// Show or update notification
@@ -71,8 +62,7 @@ public class MusicControlsNotification {
 		}
 		this.infos = newInfos;
 		this.createBuilder();
-		Notification noti = this.notificationBuilder.build();
-		this.notificationManager.notify(this.notificationID, noti);
+		this.notificationManager.notify(MusicControls.NOTIFICATION_ID, this.notificationBuilder.build());
 	}
 
 	// Toggle the play/pause button
@@ -80,7 +70,7 @@ public class MusicControlsNotification {
 		this.infos.isPlaying=isPlaying;
 		this.createBuilder();
 		Notification noti = this.notificationBuilder.build();
-		this.notificationManager.notify(this.notificationID, noti);
+		this.notificationManager.notify(MusicControls.NOTIFICATION_ID, noti);
 	}
 
 	// Toggle the dismissable status
@@ -88,7 +78,7 @@ public class MusicControlsNotification {
 		this.infos.dismissable=dismissable;
 		this.createBuilder();
 		Notification noti = this.notificationBuilder.build();
-		this.notificationManager.notify(this.notificationID, noti);
+		this.notificationManager.notify(MusicControls.NOTIFICATION_ID, noti);
 	}
 
 	// Get image from url
@@ -139,8 +129,7 @@ public class MusicControlsNotification {
 			connection.setDoInput(true);
 			connection.connect();
 			InputStream input = connection.getInputStream();
-			Bitmap myBitmap = BitmapFactory.decodeStream(input);
-			return myBitmap;
+			return BitmapFactory.decodeStream(input);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			return null;
@@ -273,9 +262,5 @@ public class MusicControlsNotification {
 		catch(Exception ex){
 			return fallback;
 		}
-	}
-
-	public void destroy(){
-		this.notificationManager.cancel(this.notificationID);
 	}
 }
