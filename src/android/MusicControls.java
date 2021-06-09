@@ -4,7 +4,6 @@ import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
-import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,7 +16,6 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
-import android.util.Log;
 import android.app.Activity;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -25,12 +23,7 @@ import android.content.Intent;
 import android.app.PendingIntent;
 import android.content.ServiceConnection;
 import android.content.ComponentName;
-import android.app.Service;
 import android.os.IBinder;
-import android.os.Bundle;
-import android.os.Build;
-import android.R;
-import android.content.BroadcastReceiver;
 import android.media.AudioManager;
 
 import java.io.BufferedInputStream;
@@ -41,13 +34,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class MusicControls extends CordovaPlugin {
+	public static final int NOTIFICATION_ID = 7824;
+
 	private MusicControlsBroadcastReceiver mMessageReceiver;
 	private MusicControlsNotification notification;
 	private MediaSessionCompat mediaSessionCompat;
-	private final int notificationID=7824;
 	private AudioManager mAudioManager;
 	private PendingIntent mediaButtonPendingIntent;
-	private boolean mediaButtonAccess=true;
+	private boolean mediaButtonAccess = true;
 
   	private Activity cordovaActivity;
 
@@ -56,15 +50,15 @@ public class MusicControls extends CordovaPlugin {
 
 	private void registerBroadcaster(MusicControlsBroadcastReceiver mMessageReceiver){
 		final Context context = this.cordova.getActivity().getApplicationContext();
-		context.registerReceiver((BroadcastReceiver)mMessageReceiver, new IntentFilter("music-controls-previous"));
-		context.registerReceiver((BroadcastReceiver)mMessageReceiver, new IntentFilter("music-controls-pause"));
-		context.registerReceiver((BroadcastReceiver)mMessageReceiver, new IntentFilter("music-controls-play"));
-		context.registerReceiver((BroadcastReceiver)mMessageReceiver, new IntentFilter("music-controls-next"));
-		context.registerReceiver((BroadcastReceiver)mMessageReceiver, new IntentFilter("music-controls-media-button"));
-		context.registerReceiver((BroadcastReceiver)mMessageReceiver, new IntentFilter("music-controls-destroy"));
+		context.registerReceiver(mMessageReceiver, new IntentFilter("music-controls-previous"));
+		context.registerReceiver(mMessageReceiver, new IntentFilter("music-controls-pause"));
+		context.registerReceiver(mMessageReceiver, new IntentFilter("music-controls-play"));
+		context.registerReceiver(mMessageReceiver, new IntentFilter("music-controls-next"));
+		context.registerReceiver(mMessageReceiver, new IntentFilter("music-controls-media-button"));
+		context.registerReceiver(mMessageReceiver, new IntentFilter("music-controls-destroy"));
 
 		// Listen for headset plug/unplug
-		context.registerReceiver((BroadcastReceiver)mMessageReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
+		context.registerReceiver(mMessageReceiver, new IntentFilter(Intent.ACTION_HEADSET_PLUG));
 	}
 
 	// Register pendingIntent for broacast
@@ -98,7 +92,7 @@ public class MusicControls extends CordovaPlugin {
 		final MusicControlsServiceConnection mConnection = new MusicControlsServiceConnection(activity);
 
 		this.cordovaActivity = activity;
-		this.notification = new MusicControlsNotification(this.cordovaActivity, this.notificationID) {
+		this.notification = new MusicControlsNotification(this.cordovaActivity, NOTIFICATION_ID) {
 			@Override
 			protected void onNotificationUpdated(Notification notification) {
 				mConnection.setNotification(notification, this.infos.isPlaying);
@@ -112,7 +106,6 @@ public class MusicControls extends CordovaPlugin {
 
 		this.mMessageReceiver = new MusicControlsBroadcastReceiver(this);
 		this.registerBroadcaster(mMessageReceiver);
-
 		
 		this.mediaSessionCompat = new MediaSessionCompat(context, "cordova-music-controls-media-session", null, this.mediaButtonPendingIntent);
 		this.mediaSessionCompat.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
@@ -135,20 +128,15 @@ public class MusicControls extends CordovaPlugin {
 		}
 
 		Intent startServiceIntent = new Intent(activity,MusicControlsNotificationKiller.class);
-		startServiceIntent.putExtra("notificationID",this.notificationID);
+		startServiceIntent.putExtra("notificationID", NOTIFICATION_ID);
 		activity.bindService(startServiceIntent, mConnection, Context.BIND_AUTO_CREATE);
 	}
 
 	@Override
 	public boolean execute(final String action, final JSONArray args, final CallbackContext callbackContext) throws JSONException {
-		final Context context=this.cordova.getActivity().getApplicationContext();
-		final Activity activity=this.cordova.getActivity();
-
-		
 		if (action.equals("create")) {
 			final MusicControlsInfos infos = new MusicControlsInfos(args);
-			 final MediaMetadataCompat.Builder metadataBuilder = new MediaMetadataCompat.Builder();
-
+			final MediaMetadataCompat.Builder metadataBuilder = new MediaMetadataCompat.Builder();
 
 			this.cordova.getThreadPool().execute(new Runnable() {
 				public void run() {
@@ -292,8 +280,7 @@ public class MusicControls extends CordovaPlugin {
 			connection.setDoInput(true);
 			connection.connect();
 			InputStream input = connection.getInputStream();
-			Bitmap myBitmap = BitmapFactory.decodeStream(input);
-			return myBitmap;
+			return BitmapFactory.decodeStream(input);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			return null;

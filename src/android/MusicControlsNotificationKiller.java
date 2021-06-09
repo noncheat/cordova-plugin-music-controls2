@@ -4,21 +4,17 @@ import android.app.Notification;
 import android.app.Service;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.Binder;
 import android.app.NotificationManager;
 import android.content.Intent;
 
 public class MusicControlsNotificationKiller extends Service {
-
-	private static int NOTIFICATION_ID;
-	private NotificationManager mNM;
 	private final IBinder mBinder = new KillBinder(this);
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		this.NOTIFICATION_ID=intent.getIntExtra("notificationID",1);
-		return mBinder;
+		return this.mBinder;
 	}
+
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		return Service.START_STICKY;
@@ -26,18 +22,22 @@ public class MusicControlsNotificationKiller extends Service {
 
 	@Override
 	public void onCreate() {
-		mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		mNM.cancel(NOTIFICATION_ID);
+		this.removeNotification();
 	}
 
 	@Override
 	public void onDestroy() {
-		mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		mNM.cancel(NOTIFICATION_ID);
+		this.removeNotification();
+	}
+
+	@Override
+	public void onTaskRemoved(Intent rootIntent) {
+		this.removeNotification();
+		this.stopSelf();
 	}
 
 	public void setForeground(Notification notification) {
-		this.startForeground(this.NOTIFICATION_ID, notification);
+		this.startForeground(MusicControls.NOTIFICATION_ID, notification);
 	}
 
 	public void clearForeground() {
@@ -46,5 +46,10 @@ public class MusicControlsNotificationKiller extends Service {
 		}
 
 		this.stopForeground(STOP_FOREGROUND_DETACH);
+	}
+
+	private void removeNotification() {
+		NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		notificationManager.cancel(MusicControls.NOTIFICATION_ID);
 	}
 }
